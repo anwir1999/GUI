@@ -10,10 +10,11 @@ TFT_eSprite frame_170 = TFT_eSprite(&tft);
 TFT_eSprite frame_30 = TFT_eSprite(&tft);
 TFT_eSprite frame_40 = TFT_eSprite(&tft);
 TFT_eSprite frame_VL = TFT_eSprite(&tft);
+TFT_eSprite frame_FS = TFT_eSprite(&tft);
 uint32_t timeDebounce = 0, timeDebounceRotacy = 0, timeFrameAbv = 0, timeDisplayVL= 0;
 uint8_t  sub_over = 0, sub_num = 0;
 uint8_t lstNumSub3 = 5, lstNumSub2 =5, lstNumSub1 =5;
-uint8_t timeBSS = 0, timeBSM = 0, hour = 0, second = 0, minute = 0;
+uint8_t timeBSS = 0, timeBSM = 0, hour = 0, second = 0, minute = 2;
 uint8_t count = 0; 
 int volume = 0;
 int deltaMenu = 0;
@@ -22,7 +23,7 @@ char lcd_buff[128];
 bool Flag_count_broadcast = false, displayVL = false;
 //khoi tao
 scr_pointer_t lcd_pointer = {1,0,0,0}; // mac dinh
-
+radio_power_t status_power = RADIO_ON;
 const char* mainName[] = {"FAVORITE","INTERNET","FM","DAB","SETTING"};
 const char* subChanelInter[] = {"VOV1","VOV2","VOV3","VOV4","VOV5","VOV6"};
 const char* subInter[] = {"VOV","Search(Skytune)","History"};
@@ -44,8 +45,9 @@ broad_type_t broad_type = BS_NOPE;
 void init_gui()
 {
   tft.init();
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setRotation(1);
+  tft.setTextSize(2);
   tft.setSwapBytes(true);
   tft.invertDisplay(0);
   tft.fillScreen(TFT_BLACK);
@@ -123,52 +125,59 @@ void scanButton()
         }
       }
     }
-    if(WiFi.status() != WL_CONNECTED)
+    if(status_power == RADIO_ON)
     {
-      count++;
-      if(count%2 == 0)  displaySignal(0);
-      else displaySignal(1);
+      if(WiFi.status() != WL_CONNECTED)
+      {
+        count++;
+        if(count%2 == 0)  displaySignal(0);
+        else displaySignal(1);
+      }
+      else
+      {
+        displaySignal(1);
+      }
+  
+      if(Flag_start_connect)
+      {
+        timeInvert--;
+        displayCountDown();
+        if(WiFi.status() == WL_CONNECTED)
+        {
+          Flag_start_connect = false;
+          wifiDisplayPopup("fail");
+        }
+        else if(WiFi.status() != WL_CONNECTED && timeInvert <= 0)
+        {
+          Flag_start_connect = false;
+          wifiDisplayPopup("succes");
+        }      
+      }
+  
+      if(broad_type != BS_NOPE)
+      {
+        timeBSS++;
+        if(timeBSS > 59)
+        {
+          timeBSS = 0;
+          timeBSM++;
+          if(timeBSM > 59)
+          {
+            timeBSM = 0;
+          }
+        }
+       int x = 215;
+       if(timeBSM< 10)  x+=frame_40.drawNumber(0,x,23,2);
+       x+=frame_40.drawNumber(timeBSM,x,23,2);
+       x+=frame_40.drawChar(':',x,5,2); 
+       if(timeBSS < 10) x+=frame_40.drawNumber(0,x,23,2);
+       x+=frame_40.drawNumber(timeBSS,x,23,2);
+       frame_40.pushSprite(0,200);
+      }
     }
     else
     {
-      displaySignal(1);
-    }
-
-    if(Flag_start_connect)
-    {
-      timeInvert--;
-      displayCountDown();
-      if(WiFi.status() == WL_CONNECTED)
-      {
-        Flag_start_connect = false;
-        wifiDisplayPopup("fail");
-      }
-      else if(WiFi.status() != WL_CONNECTED && timeInvert <= 0)
-      {
-        Flag_start_connect = false;
-        wifiDisplayPopup("succes");
-      }      
-    }
-
-    if(broad_type != BS_NOPE)
-    {
-      timeBSS++;
-      if(timeBSS > 59)
-      {
-        timeBSS = 0;
-        timeBSM++;
-        if(timeBSM > 59)
-        {
-          timeBSM = 0;
-        }
-      }
-     int x = 215;
-     if(timeBSM< 10)  x+=frame_40.drawNumber(0,x,23,2);
-     x+=frame_40.drawNumber(timeBSM,x,23,2);
-     x+=frame_40.drawChar(':',x,5,2); 
-     if(timeBSS < 10) x+=frame_40.drawNumber(0,x,23,2);
-     x+=frame_40.drawNumber(timeBSS,x,23,2);
-     frame_40.pushSprite(0,200);
+      indicateClockPWR();
     }
   }
   if(displayVL)
@@ -280,11 +289,43 @@ void indicateMenu(scr_pointer_t lcd_pointer)
 }
 void processButton(uint32_t but)
 {
-  switch(but)
+  if(but == KEY_POWER)
   {
-    case KEY_POWER:
+      if(status_power == RADIO_ON)
+      {
+        if(broad_type != BS_NOPE)
+        {
+          frame_170.fillSprite(TFT_BLACK);
+          frame_170.setTextDatum(MC_DATUM);
+          frame_170.drawString("Stopping...", 160, 85, 2);
+          frame_170.pushSprite(0, 70);
+          delay(500);
+          frame_170.drawString("Stream stopped", 160, 85, 2);
+          frame_170.pushSprite(0, 70);
+          delay(500);
+          lcd_pointer.subMenu3 = 0;
+          broad_type = BS_NOPE;
+          timeBSS = 0;
+          timeBSM = 0;
+        }
+        int x = 0;
+        tft.setTextDatum(MC_DATUM);
+        tft.fillScreen(TFT_BLACK);
+        x = tft.drawString("sleep now", 160, 120, 2);
+        tft.drawRect(160 - x/2-10, 100, x+20, 40, TFT_YELLOW);
+        delay(500);
+        status_power = RADIO_OFF;
+      }
+      else
+      {
+        status_power = RADIO_ON;
+      }
       Serial.println("key power");
-      break;
+  }
+  if(status_power == RADIO_ON)
+  {
+    switch(but)
+    {
     case KEY_LEFT:
       if(lcd_pointer.subMenu3)
       {
@@ -314,9 +355,10 @@ void processButton(uint32_t but)
       break;
     default:
       break;
+    }
+    sub_over = 0;
+    indicateMenu(lcd_pointer);
   }
-  sub_over = 0;
-  indicateMenu(lcd_pointer);
 }
 void printRotacy(uint32_t but)
 {
@@ -333,89 +375,92 @@ void printRotacy(uint32_t but)
     default:
       break;
   }
-  if(broad_type == BS_NOPE)
+  if(status_power == RADIO_ON)
   {
-    if(lcd_pointer.subMenu3)
+    if(broad_type == BS_NOPE)
     {
-      lcd_pointer.subMenu3 += deltaMenu;
-      if(lcd_pointer.subMenu3 > lstNumSub3)
+      if(lcd_pointer.subMenu3)
       {
-        lcd_pointer.subMenu3 = 1;
+        lcd_pointer.subMenu3 += deltaMenu;
+        if(lcd_pointer.subMenu3 > lstNumSub3)
+        {
+          lcd_pointer.subMenu3 = 1;
+        }
+        else if(lcd_pointer.subMenu3 < 1)
+        {
+          lcd_pointer.subMenu3 = lstNumSub3;
+        }
       }
-      else if(lcd_pointer.subMenu3 < 1)
-      {
-        lcd_pointer.subMenu3 = lstNumSub3;
-      }
+      else if(lcd_pointer.subMenu2)
+       {
+         lcd_pointer.subMenu2+= deltaMenu;
+         if(lcd_pointer.subMenu2 > lstNumSub2)
+         {
+           lcd_pointer.subMenu2 = 1;
+         }
+        else if(lcd_pointer.subMenu2 < 1)
+        {
+          lcd_pointer.subMenu2= lstNumSub2;
+        }
+        if(lcd_pointer.subMenu2 > 5)
+        {
+           sub_over = lcd_pointer.subMenu2 - 5;
+        }
+        else
+        {
+         sub_over = 0;
+        }
+       }
+       else if(lcd_pointer.subMenu1)
+       {
+         lcd_pointer.subMenu1+= deltaMenu;
+         if(lcd_pointer.subMenu1 > lstNumSub1)
+         {
+           lcd_pointer.subMenu1 = 1;
+         }
+        else if(lcd_pointer.subMenu1 < 1)
+        {
+          lcd_pointer.subMenu1 = lstNumSub1;
+        }
+         if(lcd_pointer.subMenu1 > 5)
+         {
+            sub_over = lcd_pointer.subMenu1 - 5;
+         }
+         else
+         {
+          sub_over = 0;
+         }
+       }
+       else if(lcd_pointer.mainMenu)
+       {
+         lcd_pointer.mainMenu+= deltaMenu;
+         if(lcd_pointer.mainMenu > 5)
+         {
+           lcd_pointer.mainMenu = 1;
+         }   
+        else if(lcd_pointer.mainMenu < 1)
+        {
+          lcd_pointer.mainMenu = 5;
+        }
+       }
+      indicateMenu(lcd_pointer);
     }
-    else if(lcd_pointer.subMenu2)
-     {
-       lcd_pointer.subMenu2+= deltaMenu;
-       if(lcd_pointer.subMenu2 > lstNumSub2)
-       {
-         lcd_pointer.subMenu2 = 1;
-       }
-      else if(lcd_pointer.subMenu2 < 1)
-      {
-        lcd_pointer.subMenu2= lstNumSub2;
-      }
-      if(lcd_pointer.subMenu2 > 5)
-      {
-         sub_over = lcd_pointer.subMenu2 - 5;
-      }
-      else
-      {
-       sub_over = 0;
-      }
-     }
-     else if(lcd_pointer.subMenu1)
-     {
-       lcd_pointer.subMenu1+= deltaMenu;
-       if(lcd_pointer.subMenu1 > lstNumSub1)
-       {
-         lcd_pointer.subMenu1 = 1;
-       }
-      else if(lcd_pointer.subMenu1 < 1)
-      {
-        lcd_pointer.subMenu1 = lstNumSub1;
-      }
-       if(lcd_pointer.subMenu1 > 5)
-       {
-          sub_over = lcd_pointer.subMenu1 - 5;
-       }
-       else
-       {
-        sub_over = 0;
-       }
-     }
-     else if(lcd_pointer.mainMenu)
-     {
-       lcd_pointer.mainMenu+= deltaMenu;
-       if(lcd_pointer.mainMenu > 5)
-       {
-         lcd_pointer.mainMenu = 1;
-       }   
-      else if(lcd_pointer.mainMenu < 1)
-      {
-        lcd_pointer.mainMenu = 5;
-      }
-     }
-    indicateMenu(lcd_pointer);
-  }
-  else
-  {
-    displayVL = true;
-    timeDisplayVL  = millis();
-    volume += deltaMenu;
-    Serial.println(volume);
-    if(volume >24)
+    else
     {
-      volume = 24;
+      displayVL = true;
+      timeDisplayVL  = millis();
+      volume += deltaMenu;
+      Serial.println(volume);
+      if(volume >24)
+      {
+        volume = 24;
+      }
+      else if(volume < 0)
+      {
+        volume = 0;
+      }
+      displayVolume();
     }
-    else if(volume < 0)
-    {
-      volume = 0;
-    }
-    displayVolume();
   }
 }
 void getListSub()
@@ -499,6 +544,7 @@ void broadcastInter()
     frame_40.pushSprite(0,30);
 
     frame_170.fillSprite(TFT_BLACK);
+    frame_170.setTextDatum(ML_DATUM);
     frame_170.setTextColor(TFT_YELLOW, TFT_BLACK);
     frame_170.pushImage(29,29,72,72,IR);
     frame_170.drawString("Other Talk",140,23,2);
@@ -576,6 +622,12 @@ void displayVolume()
 void displayCountDown()
 {
   int x = 153;
+  frame_40.fillSprite(TFT_BLUE);
+  frame_40.setTextColor(TFT_WHITE, TFT_BLUE);
+  frame_40.setTextSize(1);
+  frame_40.setTextDatum(ML_DATUM);
+  frame_40.drawString(subWifi[lcd_pointer.subMenu2 - 1], 5, 23,4);
+  frame_40.pushSprite(0, 30);
   frame_170.fillSprite(TFT_BLACK);
   frame_170.setTextDatum(MC_DATUM);
   frame_170.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -677,4 +729,17 @@ void subChannelIndicate(char *label, const char *subMenuList[],int subMenu, int 
   frame_40.setTextDatum(MR_DATUM);
   frame_40.drawString(stt, 310, 23,4);
   frame_40.pushSprite(0, 30);
+}
+void indicateClockPWR()
+{
+  frame_FS.createSprite(320, 240);
+  frame_FS.fillScreen(TFT_BLACK);
+  frame_FS.setTextDatum(TL_DATUM);
+  int x = 40, y = 90;
+  if (hour < 10) x += frame_FS.drawChar('0', x, y, 8); // Add hours leading zero for 24 hr clock
+  x += frame_FS.drawNumber(hour, x, y, 8);             // Draw hours
+  x += frame_FS.drawString(":", x, y-10, 8);
+  if (minute < 10) x += frame_FS.drawChar('0', x, y, 8); // Add minutes leading zero
+  x += frame_FS.drawNumber(minute, x, y, 8);             // Draw minutes
+  frame_FS.pushSprite(0,0);
 }

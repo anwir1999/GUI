@@ -34,6 +34,13 @@ typedef struct {
     char Temp;
 }RTC_TIME;
 RTC_TIME  RTC_Time;
+
+typedef enum
+{
+  RADIO_OFF,
+  RADIO_ON,
+}radio_power_t;
+
 typedef struct 
 {
   uint8_t mainMenu;// defaul = 1, 1- favorite, 2 - internetradio, 3 - fm radio,4 - DAB radio, 5 - setting
