@@ -1,0 +1,5 @@
+Partition | Address  |  Size
+app0,     0x00010000, 0x00600000
+app1,     0x00610000, 0x00600000
+eeprom,   0x00C10000, 0x00010000
+spiffs,   0x00C20000, 0x003E0000

@@ -1,0 +1,156 @@
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+      "Droid Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+code {
+   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.container {
+ font-size:  0.9rem;
+ color: blue;
+}
+
+.bg-blue {
+    background-color: blue;
+}
+
+.change-brand {
+    width: 100%;
+    font-size: 1.5rem;
+    color: black;
+    font-weight:600
+}
+
+.change-icon {
+    width: 25px;
+    cursor: pointer;
+}
+.change-presets {
+    width: 100%;
+    border: 1px solid orange;
+}
+
+.change-presets_content {
+    width: 100%;
+    padding: 16px;
+}
+
+.change-presets_content-tablet {
+    width: 80%;
+    margin: 0 24px;
+}
+
+.change-presets_content-tablet th {
+    text-align: center;
+}
+
+.change-presets_content-sub div .btn  {
+    border: none;
+    background-color: #9df5a7;
+    color: blue;
+    font-weight: 500;
+}
+
+/* change-pagination */
+.change-pagination {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+    margin: auto;
+}
+
+.change-pagination .form-control {
+    padding: 0;
+}
+/* change-playing */
+.change-playing {
+    width: 100%;
+    border: 1px solid orange;
+}
+
+/* .change-playing_title{
+    width: 100%;
+    padding: 16px;
+    font-weight: 400;
+    color: white; ;
+} */
+
+.change-playing_content {
+    align-items: center;
+    text-align: center;
+    padding: 16px;
+}
+
+.change-playing_content label {
+    width: 150px;
+    text-align: right;
+    margin-right: 32px;
+}
+.change-add {
+    width: 100%;
+    border: 1px solid orange;
+}
+
+.change-title {
+    width: 100%;
+    padding: 16px;
+    font-weight: 400;
+    color: white; ;
+}
+
+.change-add_content {
+    padding: 16px;
+}
+
+.change-add_content label {
+    width: 150px;
+    text-align: right;
+    margin-right: 32px;
+}
+
+.disabled {
+    color: rgb(179, 179, 179);
+}
+
+.btn.disabled {
+    color: rgb(179, 179, 179);
+    border: 1px solid rgb(179, 179, 179);
+}
+
+.nw-100 {
+    min-width: 100px;
+}
+
+.w-30 {
+    width: 30%;
+}
+
+.w-60 {
+    width: 60%;
+}
+
+.w-70 {
+    width: 70%;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.w-95 {
+    width: 95%;
+}
+
+.m-auto {
+    margin: auto;
+}
+
+.change-playing_content-warning {
+    color: red;
+    font-weight: 700;
+}

@@ -1,0 +1,147 @@
+<br />
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="change container">
+        <div class="mb-4 text-center change-brand">KAIZEN TECH</div>
+
+        <div class="change-presets flex-wrap d-flex">
+            <div class="change-title bg-blue d-flex justify-content-between">
+                <span class=""> Channel Presets </span>
+                <div>
+                    <i class="fa-solid fa-arrow-up-long fa-lg"></i>
+                    <img class="change-icon mr-2"
+                        src="https://res.cloudinary.com/dsm20cmen/image/upload/v1660100466/Web%20report%20Project/other_web/up_mj5o14.png" />
+                    <img class="change-icon mr-3"
+                        src="https://res.cloudinary.com/dsm20cmen/image/upload/v1660100466/Web%20report%20Project/other_web/down_kxu8ji.png" />
+                </div>
+            </div>
+            <div class="change-presets_content d-flex">
+                <table class="change-presets_content-tablet">
+                    <tr>
+                        <th>ID</th>
+                        <th class="w-30">Change Name</th>
+                        <th>Channel URL</th>
+                    </tr>
+                    <tr>
+                        <td class="text-center">1.</td>
+                        <td class="w-30 ">
+                            <input class="w-95" value="VOV" />
+                        </td>
+                        <td>
+                            <input class="w-95" value="****** Channel URL is maintained by Skyture" />
+                        </td>
+                    </tr>
+                </table>
+                <div class="change-presets_content-sub">
+                    <div class="mb-2">
+                        <button class="btn mr-2">Expand</button>
+                        <button class="btn">Collapse</button>
+                    </div>
+                    <div class="d-flex mb-2">
+                        <a class="mr-3 disabled" href="https://www.w3schools.com" disabled>Info</a>
+                        <a class="mr-3" href="https://www.w3schools.com">Play</a>
+                        <a class="mr-3" href="https://www.w3schools.com">Edit</a>
+                        <a class="mr-3" href="https://www.w3schools.com">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="change-pagination d-flex justify-content-between">
+            <div class="d-flex">
+                <button type="button" class="btn disabled mr-3 nw-100">Move</button>
+                <div class="">
+                    <label for="email">ID</label>: <input type="text" id="id_to" name="id_to" size="2" />
+                </div>
+                <div class="ml-4">
+                    <label for="email">To ID</label>: <input type="text" id="id_form" name="id_form" size="2" />
+                </div>
+            </div>
+
+            <div class="d-flex">
+                <button type="button" class="btn disabled mr-3 nw-100">Previous</button>
+                <button type="button" class="btn disabled mr-3 nw-100">Next</button>
+                <div class="nw-100 m-auto">Current No.</div>
+                <select class="form-control mr-2" id="exampleFormControlSelect1">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                </select>
+                <div class="m-auto ">Page</div>
+            </div>
+        </div>
+        <br />
+
+        <div class="change-playing d-flex flex-wrap">
+            <div class="change-title bg-blue d-flex justify-content-between">
+                <span class="">Channel Playing on Device</span>
+                <div>
+                    <img class="change-icon"
+                        src="https://res.cloudinary.com/dsm20cmen/image/upload/v1660102077/Web%20report%20Project/other_web/speak_down_qkcj6g.png" />
+                    <img class="change-icon"
+                        src="https://res.cloudinary.com/dsm20cmen/image/upload/v1660102077/Web%20report%20Project/other_web/speak_mute_xtjduz.png" />
+                    <img class="change-icon"
+                        src="https://res.cloudinary.com/dsm20cmen/image/upload/v1660102077/Web%20report%20Project/other_web/speak_active_wmaxta.png" />
+                    <img class="change-icon"
+                        src="https://res.cloudinary.com/dsm20cmen/image/upload/v1660102077/Web%20report%20Project/other_web/speak_up_henwzl.png" />
+                </div>
+            </div>
+            <div class="change-playing_content w-100">
+                <div class="w-100">
+                    <label for="email">Channel Name</label> <input type="text" id="email" name="email" size="30"
+                        class="w-70" />
+                </div>
+                <span class=" w-100 change-playing_content-warning">No response from radio device.</span>
+                <br />
+                <!-- <button type="btn btn-warning mt-5" type="button">Add to My Favourite</button> -->
+                <button type="button" class="btn btn-warning mt-3">Add to My Favourite</button>
+            </div>
+        </div>
+        <br />
+        <div class="change-add d-flex flex-wrap">
+            <span class="change-title bg-blue">Add Channel</span>
+            <div class="change-add_content w-100">
+                <div class="d-flex justify-content-center">
+                    <label for="email">Channel Name</label>
+                    <input type="text" id="email" name="email" size="30" class="w-70" />
+                </div>
+                <div class="d-flex justify-content-center mb-4 mt-2">
+                    <label for="email">Channel URL</label>
+                    <input type="text" id="email" name="email" size="30" class="w-70" />
+                </div>
+                <div class="d-flex justify-content-center">
+                    <button type="button" class="btn btn-outline-dark">Save</button>
+                    <button type="button" class="btn btn-outline-dark ml-3">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
