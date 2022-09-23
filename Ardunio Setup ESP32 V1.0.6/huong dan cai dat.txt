@@ -17,8 +17,7 @@ Vào thư mục cài đặt ardunio, VD: C:\Program File\arduino-1.8.13
 
 5. Copy: nvs_clear.bin  (Xóa NVS Data)
 Vào: C:\
-
-6. Mở lại project ardunio: RADIO_FM_CODE.ino
-
+6. add thu vien TFT_eSpi.zip trong thu muc
+7. Mở lại project ardunio: RADIO_FM_CODE.ino
 ESP32 Dev Module, CPU 240Mhz, FLASH 80Mhz QIO 16MB, PSRAM Enabled
 Chọn: 16MB Flash (RADIO: 6MB APP/OTA, 3.8MB SPIFFS, 64KB EEPROM)
