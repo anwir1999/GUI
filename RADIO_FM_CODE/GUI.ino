@@ -83,7 +83,7 @@ void scanButton()
 {
   // doc cong tac vo cap
   ENC_RotaryTask();
-  if(millis() - timeDebounceRotacy > 200)
+  if(millis() - timeDebounceRotacy > 300)
   {
     timeDebounceRotacy = millis();
      uint32_t but2 = Get_Rotary();
@@ -469,6 +469,7 @@ void processButton(uint32_t but)
           timeline.timeplay_minutes = 0;
         }
         Flag_start_connect = false;
+        sub_over = 0;
         break;
       }
     case KEY_BACK:
@@ -476,10 +477,18 @@ void processButton(uint32_t but)
       if(lcd_pointer.subMenu3)
       {
         lcd_pointer.subMenu3 = 0;
+        if(broad_type != BS_NOPE)
+        {
+          lcd_pointer.subMenu2 = channelSub;
+        }
       }
       else if (lcd_pointer.subMenu2)
       {
         lcd_pointer.subMenu2 = 0;
+        if(broad_type != BS_NOPE)
+        {
+          lcd_pointer.subMenu1 = channelSub;
+        }
       }
       else if (lcd_pointer.subMenu1)
       {
@@ -502,6 +511,7 @@ void processButton(uint32_t but)
         timeline.timeplay_minutes = 0;
       }
       Flag_start_connect = false;
+      getSubOver();
       Serial.println("key back");
       break;
     case KEY_FORWARD:      
@@ -522,6 +532,11 @@ void processButton(uint32_t but)
           {
             channelSub = 1;
           }
+          // chuyen kenh radio, start lai drive, reset time broadcast
+          state_radio_bs = RADIO_PLAY;
+          flag_start_radio = true;
+          timeline.timeplay_second = 0;
+          timeline.timeplay_minutes = 0;
         }
       }
       // lay gia tri do dai cua list sub truoc khi hien thi
@@ -543,12 +558,12 @@ void processButton(uint32_t but)
         check_forward = false;
         lcd_pointer.subMenu3 = 1;
       }
+      sub_over = 0;
       Serial.println("key ok");
       break;
     default:
       break;
     }
-    sub_over = 0;
     // hien thi man hinh sau khi xu ly xong nut nhat
     indicateMenu(lcd_pointer);
   }
@@ -581,6 +596,7 @@ void processRotacy(uint32_t but)
         if(lcd_pointer.subMenu3 > lstNumSub3)
         {
           lcd_pointer.subMenu3 = 1;
+          sub_over = 0;
         }
         else if(lcd_pointer.subMenu3 < 1)
         {
@@ -593,20 +609,13 @@ void processRotacy(uint32_t but)
          if(lcd_pointer.subMenu2 > lstNumSub2)
          {
            lcd_pointer.subMenu2 = 1;
+           sub_over = 0;
          }
         else if(lcd_pointer.subMenu2 < 1)
         {
           lcd_pointer.subMenu2= lstNumSub2;
         }
         // trong truong hop list sup nhieu hon 5, list sub van thay doi nhung hien thi van o vi tri 5
-        if(lcd_pointer.subMenu2 > 5)
-        {
-           sub_over = lcd_pointer.subMenu2 - 5;
-        }
-        else
-        {
-         sub_over = 0;
-        }
        }
        else if(lcd_pointer.subMenu1)
        {
@@ -614,19 +623,12 @@ void processRotacy(uint32_t but)
          if(lcd_pointer.subMenu1 > lstNumSub1)
          {
            lcd_pointer.subMenu1 = 1;
+           sub_over = 0;
          }
         else if(lcd_pointer.subMenu1 < 1)
         {
           lcd_pointer.subMenu1 = lstNumSub1;
         }
-         if(lcd_pointer.subMenu1 > 5)
-         {
-            sub_over = lcd_pointer.subMenu1 - 5;
-         }
-         else
-         {
-          sub_over = 0;
-         }
        }
        else if(lcd_pointer.mainMenu)
        {
@@ -640,6 +642,7 @@ void processRotacy(uint32_t but)
           lcd_pointer.mainMenu = 5;
         }
        }
+      getSubOver();
       indicateMenu(lcd_pointer);
     }
     else
@@ -661,6 +664,25 @@ void processRotacy(uint32_t but)
       displayVolume();
     }
   }
+}
+void getSubOver()
+{
+   if(lcd_pointer.subMenu3 > 5)
+   {
+      sub_over = lcd_pointer.subMenu3 - 5;
+   }
+   else if(!lcd_pointer.subMenu3 && lcd_pointer.subMenu2 > 5)
+   {
+      sub_over = lcd_pointer.subMenu2 - 5;
+   }
+   else if(!lcd_pointer.subMenu2 && lcd_pointer.subMenu1 > 5)
+       {
+      sub_over = lcd_pointer.subMenu1 - 5;
+   }  
+   else
+   {
+      sub_over = 0;
+   }
 }
 // man hinh broadcast cua radio, tuy theo broad type de hien thi
 // co the set string trong case tuy theo broad type
