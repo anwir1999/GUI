@@ -6,7 +6,7 @@
 void System_Stating(){
     DEBUG_PRINTLN("System stating...");
     
-    LCD_Begin(); //Auto begin SPI_Init();
+    //LCD_Begin(); //Auto begin SPI_Init();
     ENC_Begin(); //ENC INIT
     AW9523_Begin();
     WM8804_Begin();
@@ -27,7 +27,7 @@ void System_Stating(){
     //equalizer_set();
     //FM radio
     //fm_radio_play(9100);
-
+    NAU8822_Volume(volume);
     // khoi tao cung cac struct radio
     fm_length = 6;
     for(int i = 0; i < fm_length; i++)
@@ -102,6 +102,7 @@ void System_TestTask(){
           break;
         case BS_FM:
           // chay radio fm
+          fm_radio_play(9100);
           Serial.println("broad cast fm radio");
           break;
       }
@@ -110,6 +111,7 @@ void System_TestTask(){
     {
       if(!flag_stop_radio)
       {
+        fm_radio_stop();
         flag_stop_radio = true;
         flag_start_radio = false;
         Serial.println("stop radio");        

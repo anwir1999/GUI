@@ -29,7 +29,7 @@ bool displayVL = false;
 broad_type_t broad_type_pre = BS_NOPE;
 String mainName[] = {"FAVORITE","INTERNET","FM","DAB","SETTING"};
 String subInter[] = {"VOV","Search(Duc Hung Tech)","History"};
-String subSetting[] = {"Setting Wifi","FM Setup", "DAB Setup","Equalizer","Wifi Information","Information","Set Language", "Reset Factory"}; //submenu1
+String subSetting[] = {"Setting Wifi","FM Setup", "DAB Setup","Equalizer","Wifi Information","Information","Set Language", "Software Update", "Reset Factory"}; //submenu1
 String subWiFi[] = {"Scan Wifi", "Smart Config", "AP Config", "Reset Wifi"};
 String subFMSet[] = {"FM Full Scan", "FM Station List"};
 String subDABSet[] = {"DAB Full Scan", "DAB Station List"};
@@ -49,6 +49,7 @@ const char *typeBroadCast[] = {"internet", "fm", "dab"}; // hien thi type khi th
 void init_gui()
 {
   // khoi tao man hinh tft
+  SPI_Active(1);
   tft.init();
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setRotation(1);
@@ -71,7 +72,7 @@ void init_gui()
   frame_30.setTextColor(TFT_YELLOW, TFT_BLACK);
   frame_30.setTextSize(2);
   frame_30.createSprite(320, 30);
-  
+  SPI_DeActive();
   
   indicateMenu(lcd_pointer);
   
@@ -764,6 +765,7 @@ void processRotacy(uint32_t but)
       {
         volume = 0;
       }
+      NAU8822_Volume(volume);
       //hien thi man hinh pop up volume
       displayVolume();
     }
