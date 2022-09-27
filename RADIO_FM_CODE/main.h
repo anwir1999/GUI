@@ -92,7 +92,8 @@ typedef struct
   String password;
   String rssi;// do manh
   String ip;
-  String wifi_status; // connect/disconnect 
+  String bssid;
+  int wifi_status; // connect/disconnect 
 }wifi_information_t;
 
 wifi_information_t wifi_ip;
@@ -147,7 +148,13 @@ scr_pointer_t lcd_pointer = {1,0,0,0}; // mac dinh
 radio_states_t state_radio_bs = RADIO_STOP;
 bool flag_start_radio = true; // gia tri co de bat radio 1 lan;
 bool flag_stop_radio = true; // gia tri co de bat radio 1 lan;
+bool flag_fm_scan = false;
+bool flag_start_scan = false; // man hinh loadding 
+bool flag_ota_start = false;
 int volume = 0; // gia tri volume cua radio
+unsigned long currentMillis;
+unsigned long previousMillis = 0;
+unsigned long interval = 30000;
 radio_power_t status_power = RADIO_ON;// mac dinh power khi mo la on
 #if(DEBUG_SYSTEM==1)
   #define DEBUG_PRINT(...) {DEBUG_PORT.print(__VA_ARGS__);}

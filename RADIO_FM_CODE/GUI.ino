@@ -16,12 +16,13 @@ TFT_eSprite frame_40 = TFT_eSprite(&tft);
 TFT_eSprite frame_VL = TFT_eSprite(&tft);
 TFT_eSprite frame_FS = TFT_eSprite(&tft);
 
-uint32_t timeDebounce = 0, timeDebounceRotacy = 0, timeFrameAbv = 0, timeDisplayVL= 0;
+uint32_t timeDebounce = 0, timeDebounceRotacy = 0, timeFrameAbv = 0, timeDisplayVL= 0, timeDisplayLoad = 0;
 uint32_t timeInvert = 0;// thoi gian dem nguoc qua trinh config WiFi
 uint8_t  sub_over = 0; // bien over, khi man hinh qua 5 list, thanh chon mau vang se o vi tri 5
 uint8_t lstNumSub3 = 5, lstNumSub2 =5, lstNumSub1 =5;
 uint8_t channelSub = 0, channelSubLength = 0;
-uint8_t count = 0; 
+uint8_t count = 0, count_load = 0; 
+String str_load = "loading";
 int deltaMenu = 0;
 bool displayVL = false;
 //khoi tao
@@ -121,24 +122,25 @@ void scanButton()
   if(millis() - timeFrameAbv > 1000)
   {
     timeFrameAbv = millis();
-    timeline.time_second++;
-    if(timeline.time_second > 59)
+    RTC_Time.Sec++;
+    if(RTC_Time.Sec > 59)
     {
-      timeline.time_second = 0;
-      timeline.time_minutes++;
-      if(timeline.time_minutes > 59)
+      RTC_Time.Sec = 0;
+      RTC_Time.Min++;
+      if(RTC_Time.Min > 59)
       {
-        timeline.time_minutes = 0;
-        timeline.time_hour++;
-        if(timeline.time_hour > 23)
+        RTC_Time.Min = 0;
+        RTC_Time.Hour++;
+        if(RTC_Time.Hour > 23)
         {
-          timeline.time_hour = 0;
+          RTC_Time.Hour = 0;
         }
       }
     }
     if(status_power == RADIO_ON)
     {
-      if(WiFi.status() != WL_CONNECTED)
+      Wifi_GetInfomation();
+      if(wifi_ip.wifi_status != WL_CONNECTED)
       {
         count++;
         displaySignal(0);// 0 la dang nhap nhay cot song, chi khong co mang
@@ -156,15 +158,17 @@ void scanButton()
       {
         timeInvert--;
         displayCountDown();
-        if(WiFi.status() == WL_CONNECTED)
+        if(wifi_ip.wifi_status == WL_CONNECTED)
         {
           Flag_start_connect = false;
-          WiFiDisplayPopup("succes");
+          WiFi.stopSmartConfig();
+          DisplayPopup("wifi config succes");
         }
-        else if(WiFi.status() != WL_CONNECTED && timeInvert <= 0)
+        else if(wifi_ip.wifi_status != WL_CONNECTED && timeInvert <= 0)
         {
+          WiFi.stopSmartConfig();
           Flag_start_connect = false;
-          WiFiDisplayPopup("fail");
+          DisplayPopup("wifi config fail");
         }      
       }
   
@@ -188,6 +192,32 @@ void scanButton()
        x+=frame_40.drawNumber(timeline.timeplay_second,x,23,2);
        frame_40.pushSprite(0,200);
       }
+        
+      if(flag_fm_scan)
+      {
+        titleAbove("SCAN  FM");
+        timeInvert--;
+        frame170PopupWaiting("loading");
+        if(timeInvert<=0)
+        {
+          // scan fm fail
+          flag_fm_scan = false;
+          DisplayPopup("Scan FM fail");
+        }
+        // scan fm succes ...
+      }
+      else if(flag_ota_start)
+      {
+        titleAbove("OTA  UPDATE");
+        timeInvert--;
+        frame170PopupWaiting("Updating");
+        if(timeInvert<=0)
+        {
+          // ota fail
+          flag_ota_start = false;
+          DisplayPopup("OTA update fail");
+        }
+      }
     }
     else
     {
@@ -204,6 +234,35 @@ void scanButton()
       indicateMenu(lcd_pointer);
     }
   }
+}
+void titleAbove(String label)
+{
+  frame_40.fillSprite(TFT_BLUE);
+  frame_40.setTextColor(TFT_WHITE, TFT_BLUE);
+  frame_40.setTextSize(1);
+  frame_40.setTextDatum(MC_DATUM);
+  frame_40.drawString(label, 160, 23,4);
+  frame_40.pushSprite(0, 30);
+}
+void frame170PopupWaiting(String str_waiting)
+{
+   String str;
+   count_load++;
+   if(count_load>3)
+   {
+     count_load = 1;
+   }
+   str = str_waiting + " ";
+   for(int i = 0; i < count_load; i++)
+   {
+     str = str + ".";
+   }
+   frame_170.fillSprite(TFT_BLACK);
+   frame_170.setTextSize(2);
+   frame_170.setTextColor(TFT_YELLOW, TFT_BLACK);
+   frame_170.setTextDatum(MC_DATUM);
+   frame_170.drawString(str, 160, 70, 2);
+   frame_170.pushSprite(0,70);  
 }
 void indicateMenu(scr_pointer_t lcd_pointer)
 {
@@ -301,6 +360,7 @@ void indicateMenu(scr_pointer_t lcd_pointer)
            check_forward = true;
            lstNumSub1 = dab_length;
            subChannelIndicate(mainName[lcd_pointer.mainMenu - 1], dab_channel, lcd_pointer.subMenu1, lstNumSub1, fm_ic);
+           flag_ota_start = false;
         }
         else
         {
@@ -314,6 +374,8 @@ void indicateMenu(scr_pointer_t lcd_pointer)
             check_forward = true;
             lstNumSub1 = sizeof(subSetting)/12;
             subMenuIndicate(mainName[lcd_pointer.mainMenu - 1], subSetting, lcd_pointer.subMenu1, lstNumSub1);
+            flag_ota_start = false;
+            indicate_WI = false;
           }
           else
           {
@@ -325,17 +387,16 @@ void indicateMenu(scr_pointer_t lcd_pointer)
                   check_forward = true;
                   lstNumSub2 = sizeof(subWiFi)/12;
                   subMenuIndicate(subSetting[lcd_pointer.subMenu1 - 1], subWiFi, lcd_pointer.subMenu2, lstNumSub2);
+                  Flag_start_connect = false;
+                  WiFi.stopSmartConfig();
                 }
                 else
                 {
                   if(lcd_pointer.subMenu2 == 2)
                   {
                     // ham xu ly smart config
-                    if(WiFi.status() != WL_CONNECTED && !Flag_start_connect)
-                    { 
-                      timeInvert = 120;
-                      Wifi_Smartconfig();
-                    }
+                    timeInvert = 120;
+                    Wifi_Smartconfig();
                   }
                   else if(lcd_pointer.subMenu2 == 3)
                   {
@@ -344,11 +405,26 @@ void indicateMenu(scr_pointer_t lcd_pointer)
                 }
                 break;
               case 2:
-              if(!lcd_pointer.subMenu3)
+                if(!lcd_pointer.subMenu3)
                 {
+                  check_forward = true;
                   lstNumSub2 = sizeof(subFMSet)/12;
                   subMenuIndicate(subSetting[lcd_pointer.subMenu1 - 1], subFMSet, lcd_pointer.subMenu2, lstNumSub2);
+                  flag_fm_scan = false;
                 }  
+                else
+                {
+                  switch(lcd_pointer.subMenu2)
+                  {
+                    case 1:
+                      timeInvert = 30;
+                      flag_start_scan = true;
+                      flag_fm_scan = true;
+                      break;
+                    case 2:
+                      break;
+                  }
+                }
                 break;
               case 3:
                 if(!lcd_pointer.subMenu3)
@@ -387,8 +463,10 @@ void indicateMenu(scr_pointer_t lcd_pointer)
                   subMenuIndicate(subSetting[lcd_pointer.subMenu1 - 1], subLang, lcd_pointer.subMenu2, lstNumSub2);
                 }
                 break;
-              default:
-                indicate_WI = false;
+              case 8:
+                timeInvert = 30;
+                flag_start_scan = true;
+                flag_ota_start = true;
                 break;
             }
           }
@@ -437,10 +515,10 @@ void processButton(uint32_t but)
         int x = 0;
 
         // hien thi gui sleep now
-        tft.setTextDatum(MC_DATUM);
-        tft.fillScreen(TFT_BLACK);
-        x = tft.drawString("sleep now", 160, 120, 2);
-        tft.drawRect(160 - x/2-10, 100, x+20, 40, TFT_YELLOW);
+//        tft.setTextDatum(MC_DATUM);
+//        x = tft.drawString("sleep now", 160, 120, 2);
+//        tft.drawRect(160 - x/2-10, 100, x+20, 40, TFT_YELLOW);
+        DisplayPopup("sleep now");
         delay(500);
         status_power = RADIO_OFF;
       }
@@ -468,7 +546,6 @@ void processButton(uint32_t but)
           timeline.timeplay_second = 0;
           timeline.timeplay_minutes = 0;
         }
-        Flag_start_connect = false;
         sub_over = 0;
         break;
       }
@@ -510,7 +587,6 @@ void processButton(uint32_t but)
         timeline.timeplay_second = 0;
         timeline.timeplay_minutes = 0;
       }
-      Flag_start_connect = false;
       getSubOver();
       Serial.println("key back");
       break;
@@ -688,14 +764,7 @@ void getSubOver()
 // co the set string trong case tuy theo broad type
 void broadcastRadio(String channel_name, const unsigned short *image, broad_type_t broad_type)
 {
-    
-    frame_40.fillSprite(TFT_BLUE);
-    frame_40.setTextColor(TFT_WHITE, TFT_BLUE);
-    frame_40.setTextSize(1);
-    frame_40.setTextDatum(MC_DATUM);
-    frame_40.drawString(channel_name, 160, 23,4);
-    frame_40.pushSprite(0,30);
-
+    titleAbove(channel_name);
     frame_170.fillSprite(TFT_BLACK);
     frame_170.setTextSize(2);
     frame_170.setTextDatum(ML_DATUM);
@@ -775,17 +844,18 @@ void displaySignal(int status_WiFi)
       }
     }
   }
-  String subWifiInforLB[] = {"IP: ", "SSID: ", "PASSWORD: ", "RSSI: ", "BSSI: "};
-//  subWifiInfor[0] = subWifiInfor[0] + wifi_ip.ip;
-//  subWifiInfor[1] = subWifiInfor[1] + wifi_ip.ssid;
-//  subWifiInfor[2] = subWifiInfor[2] + wifi_ip.password;
-//  subWifiInfor[3] = subWifiInfor[3] + wifi_ip.rssi;
+  String subWifiInforLB[] = {"IP: ", "SSID: ", "PsWd: ", "RSSI: ", "BSSI: "};
+  subWifiInfor[0] = subWifiInforLB[0] + wifi_ip.ip;
+  subWifiInfor[1] = subWifiInforLB[1] + wifi_ip.ssid;
+  subWifiInfor[2] = subWifiInforLB[2] + wifi_ip.password;
+  subWifiInfor[3] = subWifiInforLB[3] + wifi_ip.rssi;
+  subWifiInfor[4] = subWifiInforLB[4] + wifi_ip.bssid;
   
   
-  subWifiInfor[0] = subWifiInforLB[0] + WiFi.localIP().toString();
-  subWifiInfor[1] = subWifiInforLB[1] + WiFi.SSID();
-  subWifiInfor[3] = subWifiInforLB[3] + String(WiFi.RSSI());
-  subWifiInfor[4] = subWifiInforLB[4] + WiFi.BSSIDstr();
+//  subWifiInfor[0] = subWifiInforLB[0] + WiFi.localIP().toString();
+//  subWifiInfor[1] = subWifiInforLB[1] + WiFi.SSID();
+//  subWifiInfor[3] = subWifiInforLB[3] + String(WiFi.RSSI());
+//  subWifiInfor[4] = subWifiInforLB[4] + WiFi.BSSIDstr();
   if(broad_type == BS_NOPE)
   {
     // hien thi thoi gian o goc phai man hinh
@@ -833,22 +903,73 @@ void displayCountDown()
   frame_170.setTextDatum(MC_DATUM);
   frame_170.setTextColor(TFT_WHITE, TFT_BLACK);
   frame_170.setTextSize(3);
-  x += frame_170.drawNumber(timeInvert, x, 85, 1);
+  x += frame_170.drawString(String(timeInvert), x, 85, 1);
   frame_170.drawString("S", x-10, 85, 1);
   frame_170.drawCircle(160, 85, 60, TFT_YELLOW);
   frame_170.pushSprite(0, 70);
 }
 // hien thi pop up sáu khi scan WiFi vd: success, fail...
-void WiFiDisplayPopup(char *str)
+void DisplayPopup(String str)
 {
-  frame_170.fillSprite(TFT_BLACK);
-  frame_170.setTextDatum(MC_DATUM);
-  frame_170.setTextColor(TFT_YELLOW, TFT_BLACK);
-  frame_170.setTextSize(2);
-  frame_170.drawString(str, 160, 98, 2);
-  frame_170.drawString("WiFi config", 160, 72, 2);
-  frame_170.drawRect(82, 58,160, 64,TFT_YELLOW);
-  frame_170.pushSprite(0, 70);
+  String strs[5];
+  int StringCount = 0;
+  int max_str = 0;
+  int x = 0;
+  int count = 0;
+  tft.setTextDatum(MC_DATUM);
+  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+  tft.setTextSize(2);
+  while (str.length() > 0)
+    {
+      int index = str.indexOf(' ');
+      if (index == -1) // No space found
+      {
+        if(strs[StringCount].length() > 0)
+        {
+          strs[StringCount] = strs[StringCount] + " " +str;
+        }
+        else
+        {
+          strs[StringCount] = str;
+        }
+        StringCount++;
+        break;
+      }
+      else
+      {
+        count++;
+        if(count>=2)
+        {
+          count = 0;
+          strs[StringCount] = strs[StringCount] + " " +str.substring(0, index);
+          StringCount++;
+        }
+        else
+        {
+          strs[StringCount] = str.substring(0, index);
+        }
+        str = str.substring(index+1);
+      }
+    }
+  // Show the resulting substrings
+  for (int i = 0; i < StringCount; i++)
+  {
+      x = tft.drawString(strs[i], 160, 120 + i*34, 2);
+      if(max_str < x)
+      {
+        max_str = x;
+      }
+  }
+  tft.fillRect(160 - max_str/2-10, 103,max_str + 20, StringCount*34,TFT_BLACK);
+  for (int i = 0; i < StringCount; i++)
+  {
+      x = tft.drawString(strs[i], 160, 120 + i*34, 2);
+      if(max_str < x)
+      {
+        max_str = x;
+      }
+  }
+  tft.drawRect(160 - max_str/2-10, 103,max_str + 20, StringCount*34,TFT_YELLOW);
 }
 // hien thi man hinh chinh, thu tu trong lib la 1 = favorite, 2 = internet, 3 = FM, 4 = DAB, 5 = SETTING
 void mainMenuIndicate(const short unsigned int *mainItem, String mainMenuString)
@@ -952,10 +1073,10 @@ void indicateClockPWR()
   frame_FS.fillScreen(TFT_BLACK);
   frame_FS.setTextDatum(TL_DATUM);
   int x = 40, y = 90;
-  if (timeline.time_hour < 10) x += frame_FS.drawChar('0', x, y, 8); // Add timeline.time_hours leading zero for 24 hr clock
-  x += frame_FS.drawNumber(timeline.time_hour, x, y, 8);             // Draw timeline.time_hours
+  if (RTC_Time.Hour < 10) x += frame_FS.drawChar('0', x, y, 8); // Add timeline.time_hours leading zero for 24 hr clock
+  x += frame_FS.drawNumber(RTC_Time.Hour, x, y, 8);             // Draw timeline.time_hours
   x += frame_FS.drawString(":", x, y-10, 8);
-  if (timeline.time_minutes < 10) x += frame_FS.drawChar('0', x, y, 8); // Add timeline.time_minutess leading zero
-  x += frame_FS.drawNumber(timeline.time_minutes, x, y, 8);             // Draw timeline.time_minutesfs
+  if (RTC_Time.Min < 10) x += frame_FS.drawChar('0', x, y, 8); // Add timeline.time_minutess leading zero
+  x += frame_FS.drawNumber(RTC_Time.Min, x, y, 8);             // Draw timeline.time_minutesfs
   frame_FS.pushSprite(0,0);
 }

@@ -62,6 +62,7 @@ void System_Stating(){
     }
     
     init_gui();
+    Wifi_Connect();
 }
 //
 //uint32_t Test_Time=0, Test_Time2=0;
@@ -112,6 +113,23 @@ void System_TestTask(){
         flag_stop_radio = false;
         flag_start_radio = true;
         Serial.println("stop radio");        
+      }
+    }
+
+    if(status_power == RADIO_ON && !Flag_start_connect)
+    {
+      //Wifi_Reconnect();
+    }
+    if(flag_start_scan)
+    {
+      flag_start_scan = false;
+      if(flag_fm_scan)
+      {
+        Serial.println("FM scan");
+      }
+      else if(flag_ota_start)
+      {
+        Serial.println("OTA START");
       }
     }
 //    uint32_t ms = millis();
