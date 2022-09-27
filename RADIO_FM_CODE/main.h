@@ -146,7 +146,7 @@ broad_type_t broad_type = BS_NOPE;// kieu broadcast cua radio
 scr_pointer_t lcd_pointer = {1,0,0,0}; // mac dinh
 
 radio_states_t state_radio_bs = RADIO_STOP;
-bool flag_start_radio = true; // gia tri co de bat radio 1 lan;
+bool flag_start_radio = false; // gia tri co de bat radio 1 lan;
 bool flag_stop_radio = true; // gia tri co de bat radio 1 lan;
 bool flag_fm_scan = false;
 bool flag_start_scan = false; // man hinh loadding 

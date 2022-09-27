@@ -26,7 +26,7 @@ String str_load = "loading";
 int deltaMenu = 0;
 bool displayVL = false;
 //khoi tao
-
+broad_type_t broad_type_pre = BS_NOPE;
 String mainName[] = {"FAVORITE","INTERNET","FM","DAB","SETTING"};
 String subInter[] = {"VOV","Search(Duc Hung Tech)","History"};
 String subSetting[] = {"Setting Wifi","FM Setup", "DAB Setup","Equalizer","Wifi Information","Information","Set Language", "Reset Factory"}; //submenu1
@@ -41,7 +41,7 @@ String subLang[] = {"English","Chinese","Spanish"};
 // cac bien khoi tao cho qua trinh scan nut nhan
 uint32_t but = 0, previousBut = 0;
 bool checkBut = true;
-
+scr_pointer_t lcd_pointer_pre = {1,0,0,0}; // mac dinh
 bool Flag_start_connect = false; // biet xac nhan ket noi mang, muc dich de hien thi man hinh count dowwn
 bool check_forward = true; // kiem tra xem thiet bi co forward sang sub menu tiep theo khong
 bool indicate_WI = false;
@@ -172,7 +172,7 @@ void scanButton()
         }      
       }
   
-      if(broad_type != BS_NOPE)
+      if(flag_start_radio)
       {
         timeline.timeplay_second++;
         if(timeline.timeplay_second > 59)
@@ -185,14 +185,16 @@ void scanButton()
           }
         }
        int x = 215;
-       if(timeline.timeplay_minutes< 10)  x+=frame_40.drawNumber(0,x,23,2);
-       x+=frame_40.drawNumber(timeline.timeplay_minutes,x,23,2);
-       x+=frame_40.drawChar(':',x,5,2); 
-       if(timeline.timeplay_second < 10) x+=frame_40.drawNumber(0,x,23,2);
-       x+=frame_40.drawNumber(timeline.timeplay_second,x,23,2);
-       frame_40.pushSprite(0,200);
-      }
-        
+       if(broad_type != BS_NOPE)
+       {
+         if(timeline.timeplay_minutes< 10)  x+=frame_40.drawNumber(0,x,23,2);
+         x+=frame_40.drawNumber(timeline.timeplay_minutes,x,23,2);
+         x+=frame_40.drawChar(':',x,5,2); 
+         if(timeline.timeplay_second < 10) x+=frame_40.drawNumber(0,x,23,2);
+         x+=frame_40.drawNumber(timeline.timeplay_second,x,23,2);
+         frame_40.pushSprite(0,200);        
+       }
+      }   
       if(flag_fm_scan)
       {
         titleAbove("SCAN  FM");
@@ -281,10 +283,10 @@ void indicateMenu(scr_pointer_t lcd_pointer)
            check_forward = true;
            lstNumSub1 = favorite_length;
            subChannelIndicate(mainName[lcd_pointer.mainMenu - 1], favorite_channel, lcd_pointer.subMenu1, lstNumSub1, fm_ic);
+           broad_type = BS_NOPE;
         }
         else
         {
-          state_radio_bs = RADIO_PLAY;// bat radio
           broad_type = BS_FM;
         }
         break;
@@ -305,10 +307,10 @@ void indicateMenu(scr_pointer_t lcd_pointer)
                 check_forward = true;
                 lstNumSub2 = internet_length;
                 subChannelIndicate(subInter[lcd_pointer.subMenu1 - 1], internet_channel, lcd_pointer.subMenu2, lstNumSub2, music_ic);
+                broad_type = BS_NOPE;
               }
               else
               {
-                state_radio_bs = RADIO_PLAY;// bat radio
                 broad_type = BS_INTER;
               }
               break;
@@ -318,10 +320,10 @@ void indicateMenu(scr_pointer_t lcd_pointer)
                 check_forward = true;
                 lstNumSub2 = api_length;
                 subChannelIndicate(subInter[lcd_pointer.subMenu1 - 1], api_channel, lcd_pointer.subMenu2, lstNumSub2, music_ic);
+                broad_type = BS_NOPE;
               }
               else
               {
-                state_radio_bs = RADIO_PLAY;// bat radio
                 broad_type = BS_INTER;
               }
               break;
@@ -331,10 +333,10 @@ void indicateMenu(scr_pointer_t lcd_pointer)
                 check_forward = true;
                 lstNumSub2 = history_length;
                 subChannelIndicate(subInter[lcd_pointer.subMenu1 - 1], history_channel, lcd_pointer.subMenu2, lstNumSub2, music_ic);
+                broad_type = BS_NOPE;
               }
               else
               {
-                state_radio_bs = RADIO_PLAY;// bat radio
                 broad_type = BS_INTER;
               }
               break;
@@ -347,10 +349,10 @@ void indicateMenu(scr_pointer_t lcd_pointer)
            check_forward = true;
            lstNumSub1 = fm_length;
            subChannelIndicate(mainName[lcd_pointer.mainMenu - 1], fm_channel, lcd_pointer.subMenu1, lstNumSub1, fm_ic);
+           broad_type = BS_NOPE;
         }
         else
         {
-          state_radio_bs = RADIO_PLAY;// bat radio
           broad_type = BS_FM;
         }
         break;
@@ -360,11 +362,10 @@ void indicateMenu(scr_pointer_t lcd_pointer)
            check_forward = true;
            lstNumSub1 = dab_length;
            subChannelIndicate(mainName[lcd_pointer.mainMenu - 1], dab_channel, lcd_pointer.subMenu1, lstNumSub1, fm_ic);
-           flag_ota_start = false;
+           broad_type = BS_NOPE;
         }
         else
         {
-          state_radio_bs = RADIO_PLAY;// bat radio
           broad_type = BS_DAB;
         }
         break;
@@ -475,6 +476,20 @@ void indicateMenu(scr_pointer_t lcd_pointer)
   }
   if(broad_type != BS_NOPE)
   {
+
+    if(lcd_pointer_pre.mainMenu != lcd_pointer.mainMenu || lcd_pointer_pre.subMenu1 != lcd_pointer.subMenu1 || lcd_pointer_pre.subMenu2 != lcd_pointer.subMenu2|| lcd_pointer_pre.subMenu3 != lcd_pointer.subMenu3)
+    {
+      lcd_pointer_pre.mainMenu = lcd_pointer.mainMenu;
+      lcd_pointer_pre.subMenu1 = lcd_pointer.subMenu1;
+      lcd_pointer_pre.subMenu2 = lcd_pointer.subMenu2;
+      lcd_pointer_pre.subMenu3 = lcd_pointer.subMenu3;
+      timeline.timeplay_minutes = 0;
+      timeline.timeplay_second = 0;
+    }
+    if(broad_type_pre == BS_NOPE)
+    {
+      state_radio_bs = RADIO_PLAY;// bat radio
+    }
     switch(broad_type)
     {
       case BS_INTER:
@@ -488,6 +503,7 @@ void indicateMenu(scr_pointer_t lcd_pointer)
         break;
     }
   }
+  broad_type_pre = broad_type;
 }
 // xu ly man hinh khi scan nut nhan
 void processButton(uint32_t but)
@@ -508,10 +524,26 @@ void processButton(uint32_t but)
           frame_170.pushSprite(0, 70);
           delay(500);
           lcd_pointer.subMenu3 = 0;
-          broad_type = BS_NOPE;
-          timeline.timeplay_second = 0;
-          timeline.timeplay_minutes = 0;
         }
+        if(broad_type != BS_NOPE)
+        {
+          if(lcd_pointer.subMenu3)
+          {
+            lcd_pointer.subMenu3 = 0;
+          }
+          else if(lcd_pointer.subMenu2)
+          {
+            lcd_pointer.subMenu2 = 0;
+          }
+          else if(lcd_pointer.subMenu1)
+          {
+            lcd_pointer.subMenu1 = 0;
+          }
+          broad_type = BS_NOPE;
+        }
+        state_radio_bs = RADIO_STOP;
+        timeline.timeplay_second = 0;
+        timeline.timeplay_minutes = 0;
         int x = 0;
 
         // hien thi gui sleep now
@@ -539,13 +571,6 @@ void processButton(uint32_t but)
         lcd_pointer.subMenu3 = 0;
         lcd_pointer.subMenu2= 0;
         lcd_pointer.subMenu1 = 0;
-        if(broad_type != BS_NOPE)
-        {
-          state_radio_bs = RADIO_STOP;
-          broad_type = BS_NOPE;
-          timeline.timeplay_second = 0;
-          timeline.timeplay_minutes = 0;
-        }
         sub_over = 0;
         break;
       }
@@ -579,14 +604,6 @@ void processButton(uint32_t but)
           lcd_pointer.mainMenu = 5;
         }
       }
-
-      if(broad_type != BS_NOPE)
-      {
-        state_radio_bs = RADIO_STOP;
-        broad_type = BS_NOPE;
-        timeline.timeplay_second = 0;
-        timeline.timeplay_minutes = 0;
-      }
       getSubOver();
       Serial.println("key back");
       break;
@@ -609,10 +626,10 @@ void processButton(uint32_t but)
             channelSub = 1;
           }
           // chuyen kenh radio, start lai drive, reset time broadcast
-          state_radio_bs = RADIO_PLAY;
-          flag_start_radio = true;
-          timeline.timeplay_second = 0;
+//          state_radio_bs = RADIO_PLAY;
+          flag_start_radio = false;
           timeline.timeplay_minutes = 0;
+          timeline.timeplay_second = 0;
         }
       }
       // lay gia tri do dai cua list sub truoc khi hien thi
@@ -633,6 +650,17 @@ void processButton(uint32_t but)
       {
         check_forward = false;
         lcd_pointer.subMenu3 = 1;
+      }
+      if(broad_type != BS_NOPE)
+      {
+        if(state_radio_bs == RADIO_PLAY)
+        {
+          state_radio_bs = RADIO_STOP;
+        }
+        else
+        {
+          state_radio_bs = RADIO_PLAY;
+        }
       }
       sub_over = 0;
       Serial.println("key ok");
@@ -843,6 +871,10 @@ void displaySignal(int status_WiFi)
         }
       }
     }
+  }
+  if(flag_start_radio)
+  {
+    frame_30.fillTriangle(70,15,97,2,97,28,TFT_YELLOW);
   }
   String subWifiInforLB[] = {"IP: ", "SSID: ", "PsWd: ", "RSSI: ", "BSSI: "};
   subWifiInfor[0] = subWifiInforLB[0] + wifi_ip.ip;

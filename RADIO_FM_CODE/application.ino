@@ -86,10 +86,10 @@ void System_Stating(){
 
 void System_TestTask(){
     scanButton();
-    if(state_radio_bs == RADIO_PLAY && flag_start_radio)
+    if(state_radio_bs == RADIO_PLAY && !flag_start_radio)
     {
-      flag_start_radio = false;
-      flag_stop_radio = true;
+      flag_start_radio = true;
+      flag_stop_radio = false;
       switch(broad_type)
       {
         case BS_INTER:
@@ -108,10 +108,10 @@ void System_TestTask(){
     }
     else if(state_radio_bs == RADIO_STOP)
     {
-      if(flag_stop_radio)
+      if(!flag_stop_radio)
       {
-        flag_stop_radio = false;
-        flag_start_radio = true;
+        flag_stop_radio = true;
+        flag_start_radio = false;
         Serial.println("stop radio");        
       }
     }
