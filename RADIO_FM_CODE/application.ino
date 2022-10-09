@@ -27,7 +27,7 @@ void System_Stating(){
     //equalizer_set();
     //FM radio
     //fm_radio_play(9100);
-    NAU8822_Volume(volume);
+    NAU8822_Volume(24);
     // khoi tao cung cac struct radio
     fm_length = 6;
     for(int i = 0; i < fm_length; i++)
@@ -86,6 +86,10 @@ void System_Stating(){
 
 void System_TestTask(){
     scanButton();
+    indicateVolume(); // hien thi man hinh volume, voi thoi gian hien thi la 2s
+    funcActiveGui(); // xu ly cac man hinh, su kien voi chu ky 1s, vi du: dem thoi gian scan WiFi, dem gio....
+    timeCounterGui();  // dem gio 
+    // xu ly su kien broadcast
     if(state_radio_bs == RADIO_PLAY && !flag_start_radio)
     {
       flag_start_radio = true;
@@ -95,15 +99,25 @@ void System_TestTask(){
         case BS_INTER:
           // chay radio internet
           Serial.println("broad cast internet radio");
+          Serial.print("url:  ");
+          Serial.println(broadcast_channel_now.url);
           break;
         case BS_DAB:
           // chay radio dab
+//          fm_radio_play(broadcast_channel_now.frequency);
+//          SPI_EndTransaction();
           Serial.println("broad cast dab radio");
+          Serial.print("frequency = ");
+          Serial.println(broadcast_channel_now.frequency);
           break;
         case BS_FM:
           // chay radio fm
-          fm_radio_play(9100);
+//          fm_radio_play(9100);
+          fm_radio_play(broadcast_channel_now.frequency.toInt());
+          SPI_EndTransaction();
           Serial.println("broad cast fm radio");
+          Serial.print("frequency = ");
+          Serial.println(broadcast_channel_now.frequency);
           break;
       }
     }
@@ -112,6 +126,7 @@ void System_TestTask(){
       if(!flag_stop_radio)
       {
         fm_radio_stop();
+        SPI_EndTransaction();
         flag_stop_radio = true;
         flag_start_radio = false;
         Serial.println("stop radio");        
@@ -120,7 +135,7 @@ void System_TestTask(){
 
     if(status_power == RADIO_ON && !Flag_start_connect)
     {
-      //Wifi_Reconnect();
+      Wifi_Reconnect();
     }
     if(flag_start_scan)
     {

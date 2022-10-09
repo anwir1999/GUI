@@ -53,6 +53,7 @@ radio_channel_t history_channel[100];
 radio_channel_t fm_channel[100];
 radio_channel_t dab_channel[100];
 
+radio_channel_t broadcast_channel_now;
 int fm_length, dab_length, internet_length, favorite_length, api_length, history_length; // do dai list channel kenh
 // quan ly trang thai cua broadcast
 typedef enum

@@ -32,7 +32,7 @@ void Wifi_Smartconfig(void)
 void Wifi_GetInfomation(void)
 {
     wifi_ip.wifi_status = WiFi.status();
-    Serial.println(wifi_ip.wifi_status);
+//    Serial.println(wifi_ip.wifi_status);
     if( wifi_ip.wifi_status == WL_CONNECTED)
     {
       wifi_ip.ip = WiFi.localIP().toString();

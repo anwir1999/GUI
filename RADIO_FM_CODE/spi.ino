@@ -12,8 +12,9 @@ SPIClass            SPI_H(HSPI);
 static uint32_t SPI_Lock = 0, SPI_Wait = 0, SPI_Run = 0;
 
 void SPI_Init(){
+    pinMode(HSPI_MISO, INPUT);
     SPI_H.begin(HSPI_SCLK, HSPI_MISO, HSPI_MOSI, HSPI_CS0);
-    SPI_H.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
+    SPI_H.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
     pinMode(HSPI_CS0, OUTPUT); FM_CS(1);
     pinMode(HSPI_CS1, OUTPUT); LCD_CS(1);
     SPI_Lock = 0; SPI_Wait = 0; SPI_Run = 1;
@@ -26,12 +27,18 @@ void SPI_Active(uint8_t cs){ //Lock, CS0, CS1
         delay(1); //next task
     }
     SPI_Lock = cs + 1;
-    if(SPI_Lock == 1)FM_CS(0);
+    if(SPI_Lock == 1)
+    {
+      FM_CS(0);
+    }
     else if(SPI_Lock == 2)LCD_CS(0);
 }
 
 void SPI_DeActive(){ //Unlock
-    if(SPI_Lock == 1)FM_CS(1);
+    if(SPI_Lock == 1)
+    {
+      FM_CS(1);
+    }
     else if(SPI_Lock == 2)LCD_CS(1);
     SPI_Lock = 0;
     if(SPI_Wait){
@@ -44,7 +51,12 @@ void SPI_DeActive(){ //Unlock
     if(high)SPI_H.beginTransaction(SPISettings(16000000, MSBFIRST, SPI_MODE0));
     else SPI_H.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
 }*/
-
+void SPI_EndTransaction(void)
+{
+  SPI_H.endTransaction();
+  pinMode(HSPI_MISO, OUTPUT);
+  SPI_Run = 0;
+}
 uint8_t SPI_ReadByte(){
     if(!SPI_Lock)return 0;
     return SPI_H.transfer(0);
